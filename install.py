@@ -113,15 +113,23 @@ try:
 
     env_vars = {"CMAKE_ARGS": cmake_args()}
 
-    # would rather avoid this in case it updates pytorch etc
-    # to a version that comfyui/other custom nodes hate
-    # force_reinstall = ["--upgrade", "--force-reinstall", "--no-cache-dir"]
+    print("[ComfyUI LLaVA Captioner] Checking and installing scikit-build-core")
+    try:
+        subprocess.check_call(pip_install + ["scikit-build-core"], env=env_vars)
+    except subprocess.CalledProcessError:
+        print("[ComfyUI LLaVA Captioner] Failed to install scikit-build-core. Retrying with --verbose")
+        subprocess.check_call(pip_install + ["scikit-build-core", "--verbose"], env=env_vars)
 
+    print("[ComfyUI LLaVA Captioner] Uninstalling existing llama-cpp-python (if any)")
     process_wrap("pip uninstall -y llama-cpp-python".split(" "), env_vars=env_vars)
-    process_wrap(pip_install + ["llama-cpp-python", "--no-cache-dir"], env_vars=env_vars)
+
+    print("[ComfyUI LLaVA Captioner] Installing llama-cpp-python")
+    try:
+        process_wrap(pip_install + ["llama-cpp-python", "--no-cache-dir"], env_vars=env_vars)
+    except Exception as e:
+        print("[ComfyUI LLaVA Captioner] llama-cpp-python installation failed. Retrying with --verbose")
+        process_wrap(pip_install + ["llama-cpp-python", "--no-cache-dir", "--verbose"], env_vars=env_vars)
 
 except Exception as e:
-    print(
-        "[ComfyUI LLaVA Captioner] Dependency installation has failed. Please install manually."
-    )
+    print("[ComfyUI LLaVA Captioner] Dependency installation has failed. Please install manually.")
     traceback.print_exc()
