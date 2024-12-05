@@ -113,6 +113,12 @@ try:
 
     env_vars = {"CMAKE_ARGS": cmake_args()}
 
+    try:
+        subprocess.check_call(pip_install + ["scikit-build-core"], env=env_vars)
+    except subprocess.CalledProcessError:
+        print("[ComfyUI LLaVA Captioner] Failed to install scikit-build-core. Retrying with --verbose")
+        subprocess.check_call(pip_install + ["scikit-build-core", "--verbose"], env=env_vars)
+    
     # would rather avoid this in case it updates pytorch etc
     # to a version that comfyui/other custom nodes hate
     # force_reinstall = ["--upgrade", "--force-reinstall", "--no-cache-dir"]
